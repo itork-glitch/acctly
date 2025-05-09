@@ -20,15 +20,15 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: 'acctly',
-  description: 'Krótki opis Twojej aplikacji acctly',
+  description: 'Your best account marketplace',
+  themeColor: '#346ba6',
 
-  // Open Graph
   openGraph: {
     title: 'Acctly – Your best account marketplace',
     description:
       'Acctly is a cutting-edge account marketplace where you can purchase affordable access to the most popular streaming platforms—and much more.',
     url: 'https://acctly.xyz',
-    siteName: 'acctly',
+    siteName: 'acctly.xyz',
     images: [
       {
         url: 'https://twojadomena.pl/og-image.png',
