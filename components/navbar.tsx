@@ -23,9 +23,9 @@ const Navbar = () => {
       className={`w-[100vw] px-10 py-5 fixed ${isLoginPage ? 'hidden' : ''}`}>
       <section className='flex justify-between items-center'>
         <div className='flex gap-2 items-center'>
-          <Image src='/vercel.svg' alt='' height={32} width={32} />
-          <h1 className='text-xl font-bold font-montserrat'>
-            Acct<span className='text-primary'>ly</span>
+          <Image src='/logo.png' alt='' height={52} width={52} />
+          <h1 className='text-[22px] font-bold font-montserrat tracking-wide'>
+            Acct<span className='text-primary font-black'>ly</span>
           </h1>
         </div>
 
