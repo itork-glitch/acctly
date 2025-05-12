@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo } from 'react';
 import { postions, logos, logoSize } from '@/constants/hero';
 import { motion } from 'framer-motion';
