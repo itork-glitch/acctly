@@ -34,6 +34,7 @@ const Hero = () => {
       style={{
         backgroundImage: 'conic-gradient(from -70deg, #111, #1a1a1a)',
       }}>
+      <HeroLogos />
       <div className='flex w-full h-full justify-center items-center flex-col -pt-10'>
         {/* Top link appears last */}
         <motion.div
@@ -94,8 +95,6 @@ const Hero = () => {
               />
             </Link>
           </motion.div>
-
-          <HeroLogos />
         </motion.div>
       </div>
     </div>
