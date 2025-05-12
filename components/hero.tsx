@@ -5,6 +5,8 @@ import { ModeToggle } from './ui/themeSwitcher';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
+import HeroLogos from './ui/heroLogos';
 
 const Hero = () => {
   // Animation variants
@@ -93,9 +95,7 @@ const Hero = () => {
             </Link>
           </motion.div>
 
-          {/*           <motion.div variants={buttonVariant}>
-            <ModeToggle />
-          </motion.div> */}
+          <HeroLogos />
         </motion.div>
       </div>
     </div>
