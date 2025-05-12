@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { postions, logos, logoSize } from '@/constants/hero';
+import React, { useEffect, useState } from 'react';
+import * as hero from '@/constants/hero';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
@@ -15,23 +15,39 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 };
 
 const HeroLogos = () => {
-  const shuffledLogos = useMemo(() => shuffleArray(logos), []);
+  const [clientReady, setClientReady] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [shuffled, setShuffled] = useState(hero.logos);
+  const [rots, setRots] = useState<Number[]>([]);
 
-  const rotations = useMemo(
-    () => postions.map(() => (Math.random() * 20 - 15).toFixed(2)),
-    []
-  );
+  useEffect(() => {
+    setShuffled(shuffleArray(hero.logos));
+    setRots(hero.postions.map(() => Math.random() * 20 - 15));
+
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    onResize();
+
+    window.addEventListener('resize', onResize);
+    setClientReady(true);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  if (!clientReady) return null;
+
+  const logoSize = isMobile ? hero.logoSizeMobile : hero.logoSize;
+  const posArr = isMobile ? hero.positionsMobile : hero.postions;
+
   return (
     <div className='absolute inset-0 pointer-events-none'>
-      {postions.map((pos, index) => {
-        const logo = shuffledLogos[index];
-        const rotation = Number(rotations[index]);
+      {posArr.map((pos, idx) => {
+        const logo = shuffled[idx];
+        const rot = rots[idx];
 
         return (
           <motion.div
             key={logo.id}
-            className='absolute'
-            style={{ top: pos.top, left: pos.left, rotate: `${rotation}deg` }}
+            className='absolute -z-1'
+            style={{ top: pos.top, left: pos.left, rotate: rot + 'deg' }}
             initial={{ opacity: 0, scale: 0.5, y: '300%' }}
             animate={{ opacity: 1, scale: 1, y: '0%' }}
             transition={{

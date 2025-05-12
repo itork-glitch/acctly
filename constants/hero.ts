@@ -8,6 +8,17 @@ const postions = [
   { top: '80%', left: '10%' },
 ];
 
+const positionsMobile = [
+  { top: '10%', left: '15%' },
+  { top: '10%', left: '65%' },
+  { top: '35%', left: '15%' },
+  { top: '35%', left: '65%' },
+  { top: '60%', left: '15%' },
+  { top: '60%', left: '65%' },
+  { top: '85%', left: '15%' },
+  /*   { top: '85%', left: '65%' }, */
+];
+
 const logos = [
   { id: 'yt', src: '/platformLogos/youtube.svg', alt: 'YouTube Premium' },
   { id: 'netflix', src: '/platformLogos/netflix.svg', alt: 'Netflix' },
@@ -19,5 +30,6 @@ const logos = [
 ];
 
 const logoSize = 50;
+const logoSizeMobile = 40;
 
-export { postions, logos, logoSize };
+export { postions, positionsMobile, logos, logoSize, logoSizeMobile };

@@ -1,12 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ModeToggle } from './ui/themeSwitcher';
-import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import HeroLogos from './ui/heroLogos';
+import Link from 'next/link';
 
 const Hero = () => {
   // Animation variants
@@ -30,7 +28,7 @@ const Hero = () => {
 
   return (
     <div
-      className='h-[100vh]'
+      className='h-[100vh] relative -z-50'
       style={{
         backgroundImage: 'conic-gradient(from -70deg, #111, #1a1a1a)',
       }}>
