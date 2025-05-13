@@ -1,4 +1,3 @@
-// components/Navbar.tsx
 'use client';
 
 import React from 'react';
@@ -6,6 +5,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
+import { Cross as Hamburger } from 'hamburger-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -20,32 +34,32 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`w-[100vw] px-10 py-5 fixed ${isLoginPage ? 'hidden' : ''}`}>
+      className={`w-[100vw] px-2 lg:px-10 py-2 lg:py-5 fixed ${
+        isLoginPage ? 'hidden' : ''
+      }`}>
       <section className='flex justify-between items-center'>
         <div className='flex gap-2 items-center'>
-          <Image src='/logo.png' alt='' height={52} width={52} />
+          <div className='relative w-[52px] sm:w-[40px] aspect-square'>
+            <Image src='/logo.png' alt='' fill className='object-contain' />
+          </div>
           <h1 className='text-[22px] font-bold font-montserrat tracking-wide'>
             Acct<span className='text-primary font-black'>ly</span>
           </h1>
         </div>
 
         <div className='bg-[#212121] rounded-full'>
-          <ul className='flex gap-3'>
+          <ul className='gap-3 hidden md:flex'>
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
-                // li ma pełną wysokość kontenera
                 <li key={item.href} className='h-full'>
                   <Link
                     href={item.href}
                     className={[
-                      // robimy z linka block-level i wypełniamy całą wysokość rodzica
                       'block h-full px-5 py-2 rounded-full transition-colors',
                       isActive
-                        ? // aktywny – białe tło + czarny tekst
-                          'bg-primary text-black font-medium'
-                        : // nieaktywny – tylko tekst, na hover ciemniejsze tło
-                          'text-[#f5f5f5] hover:text-white hover:bg-[#414141]',
+                        ? 'bg-primary text-black font-medium'
+                        : 'text-[#f5f5f5] hover:text-white hover:bg-[#414141]',
                     ].join(' ')}>
                     {item.label}
                   </Link>
@@ -56,9 +70,53 @@ const Navbar = () => {
         </div>
 
         <div>
-          <Button className='rounded-lg' asChild>
+          <Button className='rounded-lg hidden md:flex' asChild>
             <Link href='/login'>Login</Link>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='ghost' className='p-2 md:hidden flex'>
+                <Hamburger aria-hidden='true' size={24} />
+                <span className='sr-only'>Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className='w-56' sideOffset={4}>
+              <DropdownMenuLabel>Good morning {'{NAME}'}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <Link href={'/'}>Home</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href={'/shop'}>Shop</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href={'/deals'}>Deals</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href={'/contact'}>Contact</Link>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Settings</DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem>TBA</DropdownMenuItem>
+                      <DropdownMenuItem>TBA</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>More...</DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                <DropdownMenuItem>Orders</DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Log out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </section>
     </nav>
