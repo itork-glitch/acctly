@@ -10,13 +10,12 @@ const postions = [
 
 const positionsMobile = [
   { top: '10%', left: '15%' },
-  { top: '10%', left: '65%' },
-  { top: '35%', left: '15%' },
-  { top: '35%', left: '65%' },
-  { top: '60%', left: '15%' },
-  { top: '60%', left: '65%' },
-  { top: '85%', left: '15%' },
-  /*   { top: '85%', left: '65%' }, */
+  { top: '12%', left: '70%' },
+  { top: '25%', left: '30%' },
+  { top: '27%', left: '80%' },
+  { top: '70%', left: '15%' },
+  { top: '75%', left: '65%' },
+  { top: '85%', left: '40%' },
 ];
 
 const logos = [

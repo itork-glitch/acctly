@@ -38,7 +38,7 @@ const HeroLogos = () => {
   const posArr = isMobile ? hero.positionsMobile : hero.postions;
 
   return (
-    <div className='absolute inset-0 pointer-events-none'>
+    <div className='absolute inset-0 -z-5'>
       {posArr.map((pos, idx) => {
         const logo = shuffled[idx];
         const rot = rots[idx];
@@ -46,7 +46,7 @@ const HeroLogos = () => {
         return (
           <motion.div
             key={logo.id}
-            className='absolute -z-1'
+            className='absolute'
             style={{ top: pos.top, left: pos.left, rotate: rot + 'deg' }}
             initial={{ opacity: 0, scale: 0.5, y: '300%' }}
             animate={{ opacity: 1, scale: 1, y: '0%' }}

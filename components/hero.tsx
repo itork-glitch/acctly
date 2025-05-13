@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import HeroLogos from './ui/heroLogos';
 import Link from 'next/link';
@@ -28,13 +28,12 @@ const Hero = () => {
 
   return (
     <div
-      className='h-[100vh] relative -z-50'
+      className='relative z-10 h-[100vh]'
       style={{
         backgroundImage: 'conic-gradient(from -70deg, #111, #1a1a1a)',
       }}>
       <HeroLogos />
       <div className='flex w-full h-full justify-center items-center flex-col -pt-10'>
-        {/* Top link appears last */}
         <motion.div
           variants={textVariant}
           initial='hidden'
@@ -43,15 +42,14 @@ const Hero = () => {
           <Link
             href={'/deals'}
             className='p-[3px] rounded-full bg-gradient-to-r from-[#209e5a] to-[#141414] inline-block'>
-            <div className='bg-[#141414] rounded-xl px-5 py-1 text-[#9c9c9c]'>
-              Summer 2025 hot deals
+            <div className='flex gap-1 hover:gap-5 transition-all bg-[#141414] rounded-xl px-5 py-1 text-[#9c9c9c]'>
+              Summer 2025 hot deals <ChevronRight />
             </div>
           </Link>
         </motion.div>
 
-        {/* Main heading */}
         <motion.h1
-          className='font-bold font-montserrat text-6xl text-center tracking-wide py-6 leading-18'
+          className='font-bold font-montserrat text-4xl md:text-6xl text-center tracking-wide py-3 lg:py-6 md:leading-18'
           variants={textVariant}
           initial='hidden'
           animate='visible'
@@ -60,17 +58,16 @@ const Hero = () => {
           <span className='text-primary'>ly</span>
         </motion.h1>
 
-        {/* Subheading */}
         <motion.span
-          className='text-[#9c9c9c]'
+          className='text-[#9c9c9c] text-center text-md'
           variants={textVariant}
           initial='hidden'
           animate='visible'
           custom={2}>
-          Your gateway to unlimited entertainment with Acctly
+          Your gateway to unlimited entertainment{' '}
+          <br className='block md:hidden' /> with Acctly
         </motion.span>
 
-        {/* Buttons container with stagger */}
         <motion.div
           className='flex flex-col sm:flex-row gap-4 mt-8'
           initial='hidden'
@@ -84,7 +81,7 @@ const Hero = () => {
           <motion.div variants={buttonVariant}>
             <Link
               href={'/shop'}
-              className='flex justify-between items-center gap-3 font-medium bg-white pl-3 pr-1 py-1 rounded-4xl text-black hover:scale-110 transition-all duration-300'>
+              className='flex justify-between items-center gap-3 font-medium bg-white pl-3 pr-1 py-1 rounded-4xl text-black hover:gap-7 transition-all'>
               See our offers{' '}
               <ArrowRight
                 className='bg-primary p-1 rounded-full text-white'

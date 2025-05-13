@@ -14,7 +14,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -37,7 +36,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`w-[100vw] px-2 lg:px-10 py-2 lg:py-5 fixed ${
+      className={`w-[100vw] px-2 lg:px-10 py-2 lg:py-5 fixed z-50 ${
         isLoginPage ? 'hidden' : ''
       }`}>
       <section className='flex justify-between items-center'>
