@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './ui/button';
@@ -31,6 +31,9 @@ const navItems = [
 const Navbar = () => {
   const pathname = usePathname();
   const isLoginPage = pathname?.startsWith('/login');
+
+  const [isOpen, setOpen] = useState(false);
+  const toggleMenu = () => setOpen((prev) => !prev);
 
   return (
     <nav
@@ -73,10 +76,19 @@ const Navbar = () => {
           <Button className='rounded-lg hidden md:flex' asChild>
             <Link href='/login'>Login</Link>
           </Button>
-          <DropdownMenu>
+          <DropdownMenu open={isOpen} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant='ghost' className='p-2 md:hidden flex'>
-                <Hamburger aria-hidden='true' size={24} />
+              <Button
+                variant='ghost'
+                className='p-2 md:hidden flex'
+                onClick={() => toggleMenu}>
+                <Hamburger
+                  aria-hidden='true'
+                  size={24}
+                  toggled={isOpen}
+                  toggle={setOpen}
+                  rounded
+                />
                 <span className='sr-only'>Open menu</span>
               </Button>
             </DropdownMenuTrigger>
