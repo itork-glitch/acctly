@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
+import { disabledPages } from '@/constants/navbar';
 import { Cross as Hamburger } from 'hamburger-react';
 import {
   DropdownMenu,
@@ -28,17 +29,16 @@ const navItems = [
 ];
 
 const Navbar = () => {
-  const pathname = usePathname();
-  const isLoginPage = pathname?.startsWith('/login');
+  const pathname = usePathname() ?? '';
+  const isDisabled = disabledPages.some((page) => pathname.startsWith(page));
+
+  if (isDisabled) return null;
 
   const [isOpen, setOpen] = useState(false);
   const toggleMenu = () => setOpen((prev) => !prev);
 
   return (
-    <nav
-      className={`w-[100vw] px-2 lg:px-10 py-2 lg:py-5 fixed z-50 ${
-        isLoginPage ? 'hidden' : ''
-      }`}>
+    <nav className='w-[100vw] px-2 lg:px-10 py-2 lg:py-5 fixed z-50'>
       <section className='flex justify-between items-center'>
         <div className='flex gap-2 items-center'>
           <div className='relative w-[52px] sm:w-[40px] aspect-square'>

@@ -7,7 +7,15 @@ module.exports = {
     // ...inne ścieżki
   ],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'fancy-gradient': `linear-gradient(
+             135deg,
+             rgba(238,174,202,0.8) 0%,
+             rgba(148,187,233,0.8) 100%
+           )`,
+      },
+    },
   },
   plugins: [],
 };
