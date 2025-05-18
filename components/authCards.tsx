@@ -33,7 +33,7 @@ export default function AuthCards() {
 
   useEffect(() => {
     if (cardRef.current) {
-      const height = cardRef.current.offsetHeight + 24; // 24 = vertical margin (my-6)
+      const height = cardRef.current.offsetHeight + 24;
       setCardHeight(height);
     }
   }, []);
@@ -53,11 +53,7 @@ export default function AuthCards() {
         }}
         style={{ top: 0 }}>
         {fullList.map((card, idx) => (
-          <div
-            key={idx}
-            className='my-6'
-            ref={idx === 0 ? cardRef : null} // only the first one needs measurement
-          >
+          <div key={idx} className='my-6' ref={idx === 0 ? cardRef : null}>
             <Card
               title={card.title}
               value={card.value}

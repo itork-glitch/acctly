@@ -1,33 +1,25 @@
 'use client';
 
 import React, { ChangeEvent, FormEvent, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import LoginGradient from '@/components/ui/gradient';
 import AuthCards from '@/components/authCards';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { cardsData } from '@/constants/auth';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
-import { signIn } from 'next-auth/react';
-import Image from 'next/image';
-import Link from 'next/link';
-
-interface cardTypes {
-  title: string;
-  value: string;
-  subtitle: string;
-  bottom: string;
-}
+import { motion } from 'framer-motion';
 
 interface FormData {
-  username: string;
   email: string;
   password: string;
 }
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState<FormData>({
-    username: '',
     email: '',
     password: '',
   });
@@ -40,27 +32,9 @@ export default function SignUpPage() {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    console.log(formData);
-
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify(formData),
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (res.ok) {
-      await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        callbackUrl: '/',
-      });
-    } else {
-      const { error } = await res.json();
-      console.error('Błąd rejestracji:', error);
-    }
+    console.log('Form submitted:', formData);
   };
   return (
     <main className='flex justify-center items-center h-screen bg-[#111111]'>
@@ -83,9 +57,7 @@ export default function SignUpPage() {
             <h1 className='text-3xl font-extrabold mb-2'>
               Keep your all accounts organized in one place
             </h1>
-            <p className='text-[#9c9c9c] mb-6'>
-              Sign up to start your journey.
-            </p>
+            <p className='text-[#9c9c9c] mb-6'>Login to access your account</p>
 
             <div className='grid grid-cols-2 grid-rows-1 gap-3'>
               <button className='w-full flex items-center justify-center border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition duration-300 mb-6'>
@@ -105,22 +77,6 @@ export default function SignUpPage() {
             <form
               onSubmit={handleSubmit}
               className='space-y-6 w-full max-w-md mx-auto'>
-              <div>
-                <Label htmlFor='username'>
-                  Name <span className='text-red-500'>*</span>
-                </Label>
-                <Input
-                  id='username'
-                  name='username'
-                  type='text'
-                  required
-                  placeholder='Enter your name'
-                  value={formData.username}
-                  onChange={handleChange}
-                  className='mt-2'
-                />
-              </div>
-
               <div>
                 <Label htmlFor='email'>
                   Email <span className='text-red-500'>*</span>
@@ -156,15 +112,15 @@ export default function SignUpPage() {
               <Button
                 type='submit'
                 className='w-full bg-[#414141] text-white hover:bg-white hover:text-black transition'>
-                Create Account
+                Login
               </Button>
             </form>
 
             <p className='mt-4 text-center text-sm text-[#9c9c9c]'>
-              Already have an account?{' '}
-              <Link href='/login'>
+              You don't have an account?{' '}
+              <Link href='/signup'>
                 <span className='text-indigo-400 hover:underline'>
-                  Login here
+                  Sign here
                 </span>
               </Link>
             </p>
