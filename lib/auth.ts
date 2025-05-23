@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
     secret: process.env.SUPABASE_SERVICE_KEY!,
   }),
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET!,
   session: {
     strategy: 'database',
   },
