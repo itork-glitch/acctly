@@ -1,9 +1,23 @@
 import { AuthOptions, Session, User } from 'next-auth';
-import { SupabaseAdapter } from '@next-auth/supabase-adapter';
-import { supabaseAdmin } from '@/utils/supabase/admin';
-import { verifyPassword } from '@/lib/pass';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import { SupabaseAdapter } from '@next-auth/supabase-adapter';
+import { supabaseAdmin } from '@/utils/supabase/admin';
+import bcrypt from 'bcrypt';
+
+// Hash password function
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12;
+  return await bcrypt.hash(password, saltRounds);
+}
+
+// Verify password function
+export async function verifyPassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
+  return await bcrypt.compare(password, hashedPassword);
+}
 
 export const authOptions: AuthOptions = {
   adapter: SupabaseAdapter({
@@ -22,7 +36,9 @@ export const authOptions: AuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       authorize: async (credentials) => {
-        if (!credentials?.email || !credentials.password) return null;
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
 
         try {
           const { data: user, error } = await supabaseAdmin
@@ -32,7 +48,7 @@ export const authOptions: AuthOptions = {
             .single();
 
           if (error || !user) {
-            console.error('User not found: ', error?.message);
+            console.error('User not found:', error?.message);
             return null;
           }
 
@@ -51,14 +67,14 @@ export const authOptions: AuthOptions = {
             email: user.email,
           };
         } catch (error) {
-          console.error('Authorization error: ', error);
+          console.error('Authorization error:', error);
           return null;
         }
       },
     }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_AUTH!,
-      clientSecret: process.env.GOOGLE_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
   pages: {
@@ -73,7 +89,6 @@ export const authOptions: AuthOptions = {
       return session;
     },
     async jwt({ token, user }) {
-      // Persist user id to token for JWT strategy
       if (user) {
         token.uid = user.id;
       }
