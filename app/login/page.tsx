@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import LoginGradient from '@/components/ui/gradient';
@@ -12,18 +12,63 @@ import { cardsData } from '@/constants/auth';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { signIn } from 'next-auth/react';
+import { getSession, signIn } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface FormData {
   email: string;
   password: string;
 }
 
-export default function SignUpPage() {
+interface ValidationErrors {
+  email?: string;
+  password?: string;
+  general?: string;
+}
+
+export default function LoginPage() {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
   });
+
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const message = searchParams.get('message');
+
+    if (message) setSuccessMessage(message);
+  }, [searchParams]);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.includes('@');
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address with @';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,23 +76,84 @@ export default function SignUpPage() {
       ...prev,
       [name]: value,
     }));
+
+    if (errors[name as keyof ValidationErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
+
+    if (successMessage) setSuccessMessage('');
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await signIn('credentials', {
-      redirect: true,
-      email: formData.email,
-      password: formData.password,
-    });
+    if (!validateForm()) return;
 
-    if (res?.error) {
-      console.error('Login failed: ', res.error);
-    } else {
-      console.log('login sucessfull');
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        console.error('Login failed: ', result.error);
+
+        switch (result.error) {
+          case 'CredentialsSignin':
+            return setErrors({
+              general:
+                'Invalid email or password. Please check your credentials and try again.',
+            });
+
+          case 'AccessDenied':
+            return setErrors({
+              general:
+                'Access denied. Please contact support if this continues.',
+            });
+
+          default:
+            return setErrors({ general: 'Login failed. Please try again.' });
+        }
+      } else if (result?.ok) {
+        console.log('Login successful');
+
+        await getSession();
+        router.push('/account');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Login error: ', error);
+      setErrors({ general: 'Something went wrong. Please try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn('google', { callbackUrl: '/account' });
+    } catch (error) {
+      console.error('Google sign-in error: ', error);
+      setErrors({ general: 'Google sign-in failed. Please try again.' });
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      await signIn('apple', { callbackUrl: '/account' });
+    } catch (error) {
+      console.error('Apple sign-in failed. Please try again.');
+      setErrors({ general: 'Apple sign-in failed. Please try again.' });
+    }
+  };
+
   return (
     <main className='flex justify-center items-center h-screen bg-[#111111]'>
       <div className='w-[98vw] h-[98vh] grid grid-cols-1 md:grid-cols-2'>
@@ -72,10 +178,16 @@ export default function SignUpPage() {
             <p className='text-[#9c9c9c] mb-6'>Login to access your account</p>
 
             <div className='grid grid-cols-2 grid-rows-1 gap-3'>
-              <button className='w-full flex items-center justify-center border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition duration-300 mb-6'>
+              <button
+                type='button'
+                onClick={handleGoogleSignIn}
+                className='w-full flex items-center justify-center border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition duration-300 mb-6'>
                 <FcGoogle size={24} />
               </button>
-              <button className='w-full flex items-center justify-center border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 mb-6 hover:[&>*>*]:text-black transition-all duration-300'>
+              <button
+                type='button'
+                onClick={handleAppleSignIn}
+                className='w-full flex items-center justify-center border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 mb-6 hover:[&>*>*]:text-black transition-all duration-300'>
                 <FaApple size={24} />
               </button>
             </div>
@@ -101,30 +213,73 @@ export default function SignUpPage() {
                   placeholder='Enter your email'
                   value={formData.email}
                   onChange={handleChange}
-                  className='mt-2'
+                  className={`mt-2 ${errors.email ? 'border-red-500' : ''}`}
+                  autoComplete='email'
                 />
+                {errors.email && (
+                  <p className='text-red-400 text-sm mt-1'>{errors.email}</p>
+                )}
               </div>
 
               <div>
                 <Label htmlFor='password'>
                   Password <span className='text-red-500'>*</span>
                 </Label>
-                <Input
-                  id='password'
-                  name='password'
-                  type='password'
-                  required
-                  placeholder='Enter your password'
-                  value={formData.password}
-                  onChange={handleChange}
-                  className='mt-2'
-                />
+                <div className='relative'>
+                  <Input
+                    id='password'
+                    name='password'
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder='Enter your password'
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`mt-2 pr-12 ${
+                      errors.password ? 'border-red-500' : ''
+                    }`}
+                    autoComplete='current-password'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 mt-1'>
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className='text-red-400 text-sm mt-1'>{errors.password}</p>
+                )}
+              </div>
+
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center'>
+                  <input
+                    id='remember-me'
+                    name='remember-me'
+                    type='checkbox'
+                    className='h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded'
+                  />
+                  <label
+                    htmlFor='remember-me'
+                    className='ml-2 block text-sm text-[#9c9c9c]'>
+                    Remember me
+                  </label>
+                </div>
+
+                <div className='text-sm'>
+                  <Link
+                    href='/auth/forgot-password'
+                    className='text-indigo-400 hover:underline'>
+                    Forgot your password?
+                  </Link>
+                </div>
               </div>
 
               <Button
                 type='submit'
-                className='w-full bg-[#414141] text-white hover:bg-white hover:text-black transition'>
-                Login
+                disabled={isLoading}
+                className='w-full bg-[#414141] text-white hover:bg-white hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed'>
+                {isLoading ? 'Signing in...' : 'Login'}
               </Button>
             </form>
 

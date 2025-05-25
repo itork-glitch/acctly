@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/navbar';
-import { ThemeProvider } from '@/components/themeProvider';
+import { ThemeProvider } from '@/providers/themeProvider';
+import AuthSessionProvider from '@/providers/sessionProvider';
 import './globals.css';
 
-// 1) Import Poppins jako główna
 import { Poppins, Montserrat } from 'next/font/google';
 
 const poppins = Poppins({
@@ -50,14 +50,16 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       {/* do <body> doklejamy tylko zmienną Poppins */}
       <body className={`${poppins.variable} antialiased`}>
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange>
-          <Navbar />
-          {children}
-        </ThemeProvider>
+        <AuthSessionProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange>
+            <Navbar />
+            {children}
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

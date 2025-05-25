@@ -1,20 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
-import { hashPassword } from '@/lib/auth';
+import { isValidEmail, isValidPassword, hashPassword } from '@/lib/encrypt';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, username } = await request.json();
 
-    // Validate input
     if (!email || !password || !username) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'All fields are required' },
         { status: 400 }
       );
     }
 
-    // Check if user already exists
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address with @' },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidPassword(password)) {
+      return NextResponse.json(
+        {
+          error:
+            'Password must be at least 6 characters long and contain at least one number and one special character',
+        },
+        { status: 400 }
+      );
+    }
+
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
@@ -28,34 +43,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
-    const passwordHash = await hashPassword(password);
+    const { data: authData, error: authError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
 
-    // Create user
-    const { data: user, error } = await supabaseAdmin
-      .from('users')
-      .insert([
-        {
-          email,
-          password: passwordHash,
-          username,
-        },
-      ])
-      .select('id, email, username')
-      .single();
-
-    if (error) {
-      console.error('Error creating user:', error);
+    if (authError) {
+      console.error('Supabase auth error: ', authError);
       return NextResponse.json(
-        { error: 'Failed to create user' },
+        { error: 'Failed to create account' },
+        { status: 500 }
+      );
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const avatarUrl = `/api/avatar?username=${encodeURIComponent(username)}`;
+
+    const { error: dbError } = await supabaseAdmin.from('users').insert({
+      id: authData.user.id,
+      username,
+      email,
+      password: hashedPassword,
+      avatar_url: avatarUrl,
+      created_at: new Date().toISOString(),
+    });
+
+    if (dbError) {
+      console.error('Database error: ', dbError);
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { error: 'Failed to save user data' },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
       {
-        message: 'User created successfully',
-        user: { id: user.id, email: user.email, name: user.username },
+        message: 'Account created successfully',
+        user: {
+          id: authData.user.id,
+          email: authData.user.email,
+          username,
+          avatar_url: avatarUrl,
+        },
       },
       { status: 201 }
     );
