@@ -38,13 +38,13 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const message = searchParams.get('message');
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get('message');
 
     if (message) setSuccessMessage(message);
-  }, [searchParams]);
+  }, []);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
