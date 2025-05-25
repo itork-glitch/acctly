@@ -4,10 +4,10 @@ import { hashPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name } = await request.json();
+    const { email, password, username } = await request.json();
 
     // Validate input
-    if (!email || !password) {
+    if (!email || !password || !username) {
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
@@ -37,11 +37,11 @@ export async function POST(request: NextRequest) {
       .insert([
         {
           email,
-          passwordHash,
-          name: name || null,
+          password: passwordHash,
+          username,
         },
       ])
-      .select('id, email, name')
+      .select('id, email, username')
       .single();
 
     if (error) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'User created successfully',
-        user: { id: user.id, email: user.email, name: user.name },
+        user: { id: user.id, email: user.email, name: user.username },
       },
       { status: 201 }
     );

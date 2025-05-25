@@ -12,6 +12,7 @@ import { cardsData } from '@/constants/auth';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { signIn } from 'next-auth/react';
 
 interface FormData {
   email: string;
@@ -32,9 +33,20 @@ export default function SignUpPage() {
     }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+
+    const res = await signIn('credentials', {
+      redirect: true,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (res?.error) {
+      console.error('Login failed: ', res.error);
+    } else {
+      console.log('login sucessfull');
+    }
   };
   return (
     <main className='flex justify-center items-center h-screen bg-[#111111]'>

@@ -43,7 +43,7 @@ export const authOptions: AuthOptions = {
         try {
           const { data: user, error } = await supabaseAdmin
             .from('users')
-            .select('id, email, passwordHash')
+            .select('id, email, password, username')
             .eq('email', credentials.email)
             .single();
 
@@ -54,7 +54,7 @@ export const authOptions: AuthOptions = {
 
           const isValid = await verifyPassword(
             credentials.password,
-            user.passwordHash
+            user.password
           );
 
           if (!isValid) {
@@ -65,6 +65,7 @@ export const authOptions: AuthOptions = {
           return {
             id: user.id,
             email: user.email,
+            name: user.username, // using username from database
           };
         } catch (error) {
           console.error('Authorization error:', error);
@@ -82,9 +83,39 @@ export const authOptions: AuthOptions = {
     error: '/login?error',
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Redirect to /account after successful login
+      if (url === baseUrl || url === `${baseUrl}/login`) {
+        return `${baseUrl}/account`;
+      }
+      // Allow relative callback URLs
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // Allow callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      return `${baseUrl}/account`;
+    },
     async session({ session, user }: { session: Session; user: User }) {
       if (session.user) {
         session.user.id = user.id;
+
+        // Fetch username from database and add to session
+        try {
+          const { data: userData, error } = await supabaseAdmin
+            .from('users')
+            .select('username')
+            .eq('id', user.id)
+            .single();
+
+          if (!error && userData?.username) {
+            session.user.name = userData.username;
+          }
+        } catch (error) {
+          console.error('Error fetching username:', error);
+        }
       }
       return session;
     },
