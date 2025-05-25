@@ -16,14 +16,19 @@ export const authOptions: AuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
+          // First, authenticate with Supabase Auth
           const { data: authData, error: authError } =
             await supabaseAdmin.auth.signInWithPassword({
               email: credentials.email,
               password: credentials.password,
             });
 
-          if (authError || !authData.user) return null;
+          if (authError || !authData.user) {
+            console.error('Supabase auth error:', authError);
+            return null;
+          }
 
+          // Then fetch user data from your custom table
           const { data: userData, error: userError } = await supabaseAdmin
             .from('users')
             .select('id, username, email, avatar_url, created_at')
@@ -31,7 +36,47 @@ export const authOptions: AuthOptions = {
             .single();
 
           if (userError) {
-            console.error('Error fetching user data: ', userError);
+            console.error('Error fetching user data:', userError);
+
+            // If user doesn't exist in custom table, create them
+            if (userError.code === 'PGRST116') {
+              console.log('User not found in custom table, creating...');
+
+              // This should not happen if signup worked correctly
+              // But we'll create a fallback entry
+              const fallbackUsername =
+                authData.user.email?.split('@')[0] || 'user';
+              const { data: newUserData, error: insertError } =
+                await supabaseAdmin
+                  .from('users')
+                  .insert({
+                    id: authData.user.id,
+                    username: fallbackUsername,
+                    email: authData.user.email,
+                    avatar_url: `/api/avatar?username=${encodeURIComponent(
+                      fallbackUsername
+                    )}`,
+                    created_at: new Date().toISOString(),
+                  })
+                  .select('id, username, email, avatar_url, created_at')
+                  .single();
+
+              if (insertError) {
+                console.error(
+                  'Error creating user in custom table:',
+                  insertError
+                );
+                return null;
+              }
+
+              return {
+                id: newUserData.id,
+                email: newUserData.email,
+                name: newUserData.username,
+                image: newUserData.avatar_url,
+              };
+            }
+
             return null;
           }
 
@@ -44,7 +89,7 @@ export const authOptions: AuthOptions = {
             image: userData.avatar_url,
           };
         } catch (error) {
-          console.error('Auth error: ', error);
+          console.error('Auth error:', error);
           return null;
         }
       },
@@ -87,8 +132,7 @@ export const authOptions: AuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/login',
-    //signUp: '/auth/signup',
+    signIn: '/login', // Changed from '/auth/login' to match your actual login page
     error: '/auth/error',
   },
 
