@@ -1,12 +1,13 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // lub gdzie masz `authOptions`
-import { redirect } from 'next/navigation';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/auth/signin');
+    redirect("/auth/signin");
   }
 
   return (
@@ -14,6 +15,14 @@ export default async function AccountPage() {
       <h1>Dashboard</h1>
       <p>Welcome back, {session.user.name}!</p>
       <p>Your email: {session.user.email}</p>
+      <form
+        action={async () => {
+          "use server";
+          await signOut();
+        }}
+      >
+        <button type="submit">Sign Out</button>
+      </form>
     </div>
   );
 }
