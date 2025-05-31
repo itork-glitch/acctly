@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyTOTPToken } from '@/lib/2fa';
 import jwt from 'jsonwebtoken';
 
-export async function POST(request: NextRequest, responce: NextResponse) {
+export async function POST(request: NextRequest) {
   try {
     const { token, tempToken } = await request.json();
 

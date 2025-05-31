@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateTOTPSecret, generateQRCode } from '@/lib/2fa';
 import jwt from 'jsonwebtoken';
 
-export async function POST(request: NextRequest, response: NextResponse) {
+export async function POST(request: NextRequest) {
   try {
     const { userEmail } = await request.json();
 
