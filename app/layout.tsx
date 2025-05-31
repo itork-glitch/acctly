@@ -49,7 +49,9 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       {/* do <body> doklejamy tylko zmienną Poppins */}
-      <body className={`${poppins.variable} antialiased`}>
+      <body
+        className={`${poppins.variable} antialiased`}
+        suppressHydrationWarning>
         <AuthSessionProvider>
           <ThemeProvider
             attribute='class'

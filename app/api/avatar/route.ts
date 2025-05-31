@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
   const svg = `
     <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="${color}" rx="20" />
+      <rect width="100%" height="100%" fill="${color}" />
       <text x="50%" y="50%" font-size="64" text-anchor="middle" fill="white" dy=".35em" font-family="Arial, sans-serif">${letter}</text>
     </svg>
   `;

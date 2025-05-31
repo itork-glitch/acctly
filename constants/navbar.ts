@@ -1,1 +1,7 @@
-export const disabledPages = ['/login', '/signup', 'dashboard'];
+export const disabledPages = [
+  '/login',
+  '/signup',
+  '/dashboard',
+  '/shop',
+  '/account',
+];
