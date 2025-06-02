@@ -25,7 +25,7 @@ interface SecurityProps {
 
 type Step = 'email-verification' | '2fa';
 
-export const SecuritySettings = (/* { email, username }: SecurityProps */) => {
+export const SecuritySettings = ({ email, username }: SecurityProps) => {
   const [currentStep, setCurrentStep] = useState<Step>('email-verification');
   const [isVerifying, setIsVerifying] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -42,10 +42,63 @@ export const SecuritySettings = (/* { email, username }: SecurityProps */) => {
     if (OTPValue.length !== 6) return;
 
     setIsVerifying(true);
-    // API Call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch('/api/confirm-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          code: OTPValue,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await triggerSuccessAnimation();
+      } else {
+        alert(data.message || 'Verification failed');
+        setOTPValue('');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      alert('Network error. Please try again.');
+    }
     setIsVerifying(false);
-    await triggerSuccessAnimation();
+  };
+
+  const sendVerificationEmail = async (email: string) => {
+    try {
+      const response = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send verification email');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Send email error:', error);
+      throw error;
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      await sendVerificationEmail(email); // Replace with actual email
+      alert('Verification code sent successfully');
+    } catch (error) {
+      alert(`Failed to send verification code + ${error}`);
+    }
   };
 
   const handleSkip2FA = () => {
@@ -262,7 +315,8 @@ export const SecuritySettings = (/* { email, username }: SecurityProps */) => {
                       whileTap='tap'>
                       <Button
                         variant='ghost'
-                        className='text-[#209e5a] hover:text-[#1a7d48] hover:bg-[#209e5a]/10'>
+                        className='text-[#209e5a] hover:text-[#1a7d48] hover:bg-[#209e5a]/10'
+                        onClick={() => handleResendCode()}>
                         Resend Code
                       </Button>
                     </motion.div>

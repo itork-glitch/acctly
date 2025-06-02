@@ -199,7 +199,12 @@ export default async function Dashboard() {
         <div className='col-start-3 row-start-3'>5</div>
         <div className='col-span-2 col-start-1 row-start-3'>6</div>
       </section>
-      {!user.is_confirmed && <SecuritySettings />}
+      {!user.is_confirmed && (
+        <SecuritySettings
+          email={session.user.email || 'itork555@gmail.com'}
+          username={session.user.name || ''}
+        />
+      )}
     </main>
   );
 }

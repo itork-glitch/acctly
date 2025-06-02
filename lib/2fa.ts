@@ -1,17 +1,9 @@
+import { Resend } from 'resend';
 import speakeasy, { otpauthURL } from 'speakeasy';
 import QRCode from 'qrcode';
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_KEY!);
 
 export function generateTOTPSecret(
   userEmail: string,
@@ -23,19 +15,11 @@ export function generateTOTPSecret(
     length: 32,
   });
 
-  return {
-    secret: secret.base32,
-    otpauth_url: secret.otpauth_url,
-  };
+  return { secret: secret.base32, otpauth_url: secret.otpauth_url! };
 }
 
 export async function generateQRCode(otpauth_url: string): Promise<string> {
-  try {
-    const qrCodeDataURL = await QRCode.toDataURL(otpauth_url);
-    return qrCodeDataURL;
-  } catch (error) {
-    throw new Error('QR code generation error');
-  }
+  return QRCode.toDataURL(otpauth_url);
 }
 
 export function verifyTOTPToken(token: string, secret: string): boolean {
@@ -48,17 +32,14 @@ export function verifyTOTPToken(token: string, secret: string): boolean {
 }
 
 export function generateEmailCode(): string {
-  return crypto.randomInt(10 ^ 4, 999999).toString();
+  return crypto.randomInt(100000, 999999).toString();
 }
 
-export async function sendEmailCode(
-  email: string,
-  code: string
-): Promise<void> {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to: email,
-    subject: 'Kod weryfikacyjny 2FA - Acctly',
+export async function sendEmailCode(to: string, code: string): Promise<void> {
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM!,
+    to,
+    subject: 'Kod weryfikacyjny 2FA – Acctly',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">Kod weryfikacyjny</h2>
@@ -70,13 +51,15 @@ export async function sendEmailCode(
         <p>Jeśli to nie Ty, zignoruj tę wiadomość.</p>
       </div>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 }
 
 export function hashEmailCode(code: string, secret: string): string {
-  return crypto.createHmac('sha256', secret).update(code).digest('hex');
+  //if (!secret) throw new Error('Missing secret for hashing email code');
+  return crypto
+    .createHmac('sha256', process.env['2FA_SECRET']!)
+    .update(code)
+    .digest('hex');
 }
 
 export function verifyEmailCode(
@@ -86,7 +69,7 @@ export function verifyEmailCode(
 ): boolean {
   const computedHash = hashEmailCode(code, secret);
   return crypto.timingSafeEqual(
-    Buffer.from(hashedCode),
-    Buffer.from(computedHash)
+    Buffer.from(hashedCode, 'hex'),
+    Buffer.from(computedHash, 'hex')
   );
 }
