@@ -12,10 +12,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, email')
+      .eq('email', userEmail)
+      .single();
+
+    if (!data || userError)
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+
     const { error } = await supabaseAdmin
       .from('user_2fa')
       .update({ email_2fa_enabled: true })
-      .eq('email', userEmail);
+      .eq('user_id', data.id);
 
     if (error) {
       console.error('Database error:', error);
