@@ -21,6 +21,7 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
 interface FormData {
   email: string;
@@ -31,17 +32,16 @@ interface ValidationErrors {
   email?: string;
   password?: string;
   general?: string;
-  otp?: string;
 }
-
-type LoginStep = 'login' | '2fa';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function LoginPage() {
+type LoginStep = 'login' | '2fa';
+
+export default function LoginForm() {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -121,70 +121,6 @@ export default function LoginPage() {
         [name]: undefined,
       }));
     }
-
-    if (successMessage) setSuccessMessage('');
-  };
-
-  const handleOTPSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (otpCode.length !== 6) {
-      setErrors({ ...errors, otp: 'Please enter a 6-digit code' });
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({ ...errors, otp: '' });
-
-    try {
-      const responce = await fetch('/api/auth/verify-2fa', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tempToken: localStorage.getItem('tempToken'),
-          totpCode: otpCode,
-        }),
-      });
-
-      const data = await responce.json();
-
-      if (data.success) {
-        router.push('/dashboard');
-      } else {
-        setErrors({
-          ...errors,
-          otp: data.error || 'Invalid code. Please try again.',
-        });
-        setOtpCode('');
-      }
-    } catch (error) {
-      setErrors({ ...errors, otp: 'Network error. Please try again.' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOTPComplete = (value: string) => {
-    setOtpCode(value);
-
-    if (value.length === 6) {
-      setTimeout(() => {
-        const form = document.querySelector('form');
-        if (form)
-          form.dispatchEvent(
-            new Event('submit', { cancelable: true, bubbles: true })
-          );
-      }, 100);
-    }
-  };
-
-  const handleBackToLogin = () => {
-    setLoginStep('login');
-    setOtpCode('');
-    setErrors({ ...errors, otp: '' });
-    localStorage.removeItem('tempToken');
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -195,35 +131,33 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrors({});
 
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('email', formData.email)
-      .single();
-
-    if (!userData || userError) {
-      return setErrors({
-        general: 'User not found. Please create account',
-      });
-    }
-
-    const { data: TwoFaData, error: TwoFaError } = await supabase
-      .from('user_2fa')
-      .select('id, user_id, email_2fa_enabled, app_2fa_enabled')
-      .eq('user_id', userData.id)
-      .single();
-
-    if (TwoFaError) {
-      return setErrors({
-        general: 'User not found. Please create account',
-      });
-    }
-
-    if (TwoFaData.app_2fa_enabled) {
-    } else if (TwoFaData.email_2fa_enabled) {
-    }
-
     try {
+      // Check if user exists and has 2FA enabled
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('email', formData.email)
+        .single();
+
+      if (!userData || userError) {
+        setErrors({ general: 'User not found. Please create account' });
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: twoFaData, error: twoFaError } = await supabase
+        .from('user_2fa')
+        .select('id, user_id, email_2fa_enabled, app_2fa_enabled')
+        .eq('user_id', userData.id)
+        .single();
+
+      if (twoFaError) {
+        setErrors({ general: 'User not found. Please create account' });
+        setIsLoading(false);
+        return;
+      }
+
+      // Verify credentials first
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -231,33 +165,63 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        console.error('Login failed: ', result.error);
+        console.error('Login failed:', result.error);
 
         switch (result.error) {
           case 'CredentialsSignin':
-            return setErrors({
+            setErrors({
               general:
                 'Invalid email or password. Please check your credentials and try again.',
             });
-
+            break;
           case 'AccessDenied':
-            return setErrors({
+            setErrors({
               general:
                 'Access denied. Please contact support if this continues.',
             });
-
+            break;
           default:
-            return setErrors({ general: 'Login failed. Please try again.' });
+            setErrors({ general: 'Login failed. Please try again.' });
         }
-      } else if (result?.ok) {
-        console.log('Login successful');
+        setIsLoading(false);
+        return;
+      }
 
-        await getSession();
-        router.push('/account');
-        router.refresh();
+      // Check if 2FA is enabled
+      if (twoFaData.app_2fa_enabled || twoFaData.email_2fa_enabled) {
+        // Create temporary token for 2FA flow
+        const tempToken = jwt.sign(
+          {
+            userEmail: formData.email,
+            userId: userData.id,
+            twoFaType: twoFaData.app_2fa_enabled ? 'app' : 'email',
+          },
+          process.env.NEXT_PUBLIC_JWT_SECRET!,
+          { expiresIn: '5m' }
+        );
+
+        localStorage.setItem('tempToken', tempToken);
+
+        // If email 2FA is enabled, send the code
+        if (twoFaData.email_2fa_enabled) {
+          await fetch('/api/2fa/send-email-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userEmail: formData.email,
+              userId: userData.id,
+              tempToken,
+            }),
+          });
+        }
+
+        onLoginSuccess(tempToken, twoFaData.app_2fa_enabled ? 'app' : 'email');
+      } else {
+        // No 2FA enabled, direct login
+        onDirectLogin();
       }
     } catch (error) {
-      console.error('Login error: ', error);
+      console.error('Login error:', error);
       setErrors({ general: 'Something went wrong. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -268,7 +232,7 @@ export default function LoginPage() {
     try {
       await signIn('google', { callbackUrl: '/account' });
     } catch (error) {
-      console.error('Google sign-in error: ', error);
+      console.error('Google sign-in error:', error);
       setErrors({ general: 'Google sign-in failed. Please try again.' });
     }
   };
