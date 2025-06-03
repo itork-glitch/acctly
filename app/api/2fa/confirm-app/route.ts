@@ -17,26 +17,51 @@ export async function POST(request: NextRequest) {
     const decoded = jwt.verify(tempToken, process.env.JWT_SECRET!) as any;
     const { secret, userEmail } = decoded;
 
+    // Pobierz user_id na podstawie emaila z tabeli users
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users') // lub jak nazywa się twoja główna tabela użytkowników
+      .select('id')
+      .eq('email', userEmail)
+      .single();
+
+    if (userError || !userData) {
+      console.error('User lookup error:', userError);
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const user_id = userData.id;
+
     if (!verifyTOTPToken(token, secret)) {
       return NextResponse.json({ message: 'Invalid code' }, { status: 400 });
     }
 
     const { error } = await supabaseAdmin
-      .from('users')
+      .from('user_2fa')
       .update({
         totp_secret: secret,
         app_2fa_enabled: true,
       })
-      .eq('email', userEmail);
+      .eq('user_id', user_id);
 
-    if (error) {
-      console.error('Database error:', error);
+    if (error)
       return NextResponse.json({ message: 'Database error' }, { status: 500 });
-    }
 
-    return NextResponse.json({ message: '2FA enabled successfully' });
+    return NextResponse.json(
+      { message: 'App 2FA enabled successfully!' },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('2FA confirm error:', error);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    if (error instanceof jwt.TokenExpiredError) {
+      return NextResponse.json(
+        { message: 'Setup session expired. Please start again.' },
+        { status: 401 }
+      );
+    }
+    console.log(error);
+
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

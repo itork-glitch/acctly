@@ -16,14 +16,20 @@ export async function POST(request: NextRequest) {
     const hashedCode = hashEmailCode(code, process.env.TOTP_SECRET!);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    const { error } = await supabaseAdmin.from('email_codes').insert({
-      user_email: email,
-      code_hash: hashedCode,
-      expires_at: expiresAt.toISOString(),
-    });
+    const [{ error: checkError }, { error: updateError }] = await Promise.all([
+      supabaseAdmin.from('email_codes').insert({
+        user_email: email,
+        code_hash: hashedCode,
+        expires_at: expiresAt.toISOString(),
+      }),
+      supabaseAdmin
+        .from('users')
+        .update({ is_confirmed: true })
+        .eq('email', email)
+        .select(),
+    ]);
 
-    if (error) {
-      console.error('Database error: ', error);
+    if (checkError || updateError) {
       return NextResponse.json({ message: 'Database error' }, { status: 500 });
     }
 

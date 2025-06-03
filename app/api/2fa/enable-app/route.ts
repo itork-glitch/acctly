@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
 
-    const { secret, otpauth_url } = generateTOTPSecret(userEmail);
+    const { secret, otpauth_url } = generateTOTPSecret(`Acctly: ${userEmail}`);
 
     if (!otpauth_url) {
       return NextResponse.json(
@@ -23,11 +23,14 @@ export async function POST(request: NextRequest) {
     const qrCode = await generateQRCode(otpauth_url);
 
     const tempToken = jwt.sign({ secret, userEmail }, process.env.JWT_SECRET!, {
-      expiresIn: '10m',
+      expiresIn: '1h',
     });
 
-    NextResponse.json({ qrCode, secret, tempToken }, { status: 200 });
+    return NextResponse.json({ qrCode, secret, tempToken }, { status: 200 });
   } catch (error) {
-    NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

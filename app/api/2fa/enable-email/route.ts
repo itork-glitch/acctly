@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { error } = await supabaseAdmin
-      .from('users')
+      .from('user_2fa')
       .update({ email_2fa_enabled: true })
       .eq('email', userEmail);
 

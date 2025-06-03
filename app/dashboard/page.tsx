@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { logos } from '@/constants/hero';
+import { signOut } from 'next-auth/react';
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -195,16 +196,13 @@ export default async function Dashboard() {
             <span className='text-[#9c9c9c] text-sm'>Send feedback</span>
           </div>
         </div>
-        <div className='col-span-2 row-start-2'>4</div>
+        <div className='col-span-2 row-start-2'>
+          <button>wyloguj</button>
+        </div>
         <div className='col-start-3 row-start-3'>5</div>
         <div className='col-span-2 col-start-1 row-start-3'>6</div>
       </section>
-      {!user.is_confirmed && (
-        <SecuritySettings
-          email={session.user.email || 'itork555@gmail.com'}
-          username={session.user.name || ''}
-        />
-      )}
+      {user.is_confirmed && <SecuritySettings user={session.user} />}
     </main>
   );
 }
