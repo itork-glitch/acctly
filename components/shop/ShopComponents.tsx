@@ -17,23 +17,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 // Product Card Skeleton Component
 export const ProductSkeleton = () => (
-  <Card className='bg-[#212121] border-[#414141] overflow-hidden'>
+  <Card className='bg-[#212121] border-[#414141] overflow-hidden p-2'>
     <CardContent className='p-0'>
-      <Skeleton className='w-full h-64 bg-gray-700' />
+      <Skeleton className='w-full h-64 bg-[#414141]' />
       <div className='p-4 space-y-3'>
         <div className='space-y-2'>
-          <Skeleton className='h-4 w-3/4 bg-gray-700' />
-          <Skeleton className='h-3 w-1/2 bg-gray-700' />
+          <Skeleton className='h-4 w-3/4 bg-[#414141]' />
+          <Skeleton className='h-3 w-1/2 bg-[#414141]' />
         </div>
-        <Skeleton className='h-4 w-2/3 bg-gray-700' />
+        <Skeleton className='h-4 w-2/3 bg-[#414141]' />
         <div className='flex items-center justify-between'>
-          <Skeleton className='h-6 w-20 bg-gray-700' />
-          <Skeleton className='h-4 w-16 bg-gray-700' />
+          <Skeleton className='h-6 w-20 bg-[#414141]' />
+          <Skeleton className='h-4 w-16 bg-[#414141]' />
         </div>
-        <Skeleton className='h-10 w-full bg-gray-700' />
+        <Skeleton className='h-10 w-full bg-[#414141]' />
       </div>
     </CardContent>
   </Card>
@@ -48,17 +49,17 @@ export const FiltersSkeleton = () => (
     </div>
     <div className='space-y-4'>
       <div>
-        <Skeleton className='h-4 w-24 bg-gray-700 mb-2' />
-        <Skeleton className='h-6 w-full bg-gray-700' />
+        <Skeleton className='h-4 w-24 bg-[#414141] mb-2' />
+        <Skeleton className='h-6 w-full bg-[#313131]' />
       </div>
-      <Separator className='bg-gray-600' />
+      <Separator className='bg-[#414141]' />
       <div>
-        <Skeleton className='h-4 w-20 bg-gray-700 mb-2' />
+        <Skeleton className='h-4 w-20 bg-[#313131] mb-2' />
         <div className='space-y-2'>
           {[...Array(5)].map((_, i) => (
             <div key={i} className='flex items-center space-x-2'>
-              <Skeleton className='h-4 w-4 bg-gray-700' />
-              <Skeleton className='h-4 w-20 bg-gray-700' />
+              <Skeleton className='h-4 w-4 bg-[#313131]' />
+              <Skeleton className='h-4 w-20 bg-[#313131]' />
             </div>
           ))}
         </div>
@@ -78,10 +79,10 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => (
     <div className='container mx-auto px-4 py-4'>
       <div className='flex items-center justify-between gap-4'>
         {/* Logo */}
-        <div className='flex items-center gap-2'>
+        <Link href='/' className='flex items-center gap-2'>
           <Image src='/logo.png' alt='Acctly logo' height={36} width={36} />
           <span className='text-xl font-bold'>Acctly</span>
-        </div>
+        </Link>
 
         {/* Search Bar */}
         <div className='flex-1 max-w-2xl mx-8'>
@@ -294,7 +295,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => (
         <div className='flex items-center gap-2'>
           <Truck className='h-4 w-4 text-primary' />
           <span className='text-sm text-gray-300'>
-            Delivery in {product.delivery_days} days
+            Delivery in {product.delivery_days}
           </span>
         </div>
 

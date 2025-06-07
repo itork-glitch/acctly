@@ -81,8 +81,8 @@ function ShopPageSkeleton() {
 // Metadata for SEO
 export async function generateMetadata() {
   return {
-    title: 'ShopDark - Premium Products',
+    title: 'Acctly - Affordable entertainment for everyone',
     description:
-      'Discover amazing products with fast delivery and great prices.',
+      'Discover amazing moments with fast delivery and great service.',
   };
 }
