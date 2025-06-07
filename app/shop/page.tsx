@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import { ShopService } from '@/utils/shop/shopService';
-import { Product } from '@/types/shop';
 import { ProductSkeleton } from '@/components/shop/ShopComponents';
 import ShopClient from './ShopClient';
 
@@ -79,7 +78,7 @@ function ShopPageSkeleton() {
   );
 }
 
-// Metadata dla SEO
+// Metadata for SEO
 export async function generateMetadata() {
   return {
     title: 'ShopDark - Premium Products',
