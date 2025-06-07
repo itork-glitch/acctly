@@ -9,6 +9,6 @@ declare namespace NodeJS {
     EMAIL_FROM: string;
     '2FA_SECRET': string;
     TOTP_SECRET: string;
-    JWT_SECRET: string;
+    NEXT_PUBLIC_JWT_SECRET: string;
   }
 }

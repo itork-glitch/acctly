@@ -197,12 +197,12 @@ export default async function Dashboard() {
           </div>
         </div>
         <div className='col-span-2 row-start-2'>
-          <button>wyloguj</button>
+          <SignOut />
         </div>
         <div className='col-start-3 row-start-3'>5</div>
         <div className='col-span-2 col-start-1 row-start-3'>6</div>
       </section>
-      {user.is_confirmed && <SecuritySettings user={session.user} />}
+      {!user.is_confirmed && <SecuritySettings user={session.user} />}
     </main>
   );
 }
