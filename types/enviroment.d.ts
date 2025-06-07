@@ -5,7 +5,7 @@ declare namespace NodeJS {
     SUPABASE_SERVICE_KEY: string;
     GOOGLE_CLIENT: string;
     GOOGLE_SECRET: string;
-    RESEND_KEY: string;
+    RESEND_API_KEY: string;
     EMAIL_FROM: string;
     '2FA_SECRET': string;
     TOTP_SECRET: string;

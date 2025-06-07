@@ -3,7 +3,7 @@ import speakeasy, { otpauthURL } from 'speakeasy';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
 
-const resend = new Resend(process.env.RESEND_KEY!);
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export function generateTOTPSecret(
   userEmail: string,

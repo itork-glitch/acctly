@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/utils/supabase/admin';
 import { Resend } from 'resend';
 import jwt from 'jsonwebtoken';
 
-const resend = new Resend(process.env.RESEND_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
