@@ -79,10 +79,8 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => (
       <div className='flex items-center justify-between gap-4'>
         {/* Logo */}
         <div className='flex items-center gap-2'>
-          <div className='h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center'>
-            <span className='text-white font-bold text-sm'>S</span>
-          </div>
-          <span className='text-xl font-bold'>ShopDark</span>
+          <Image src='/logo.png' alt='Acctly logo' height={36} width={36} />
+          <span className='text-xl font-bold'>Acctly</span>
         </div>
 
         {/* Search Bar */}
@@ -185,7 +183,7 @@ export const FiltersSidebar = ({
                 value={priceRange}
                 onValueChange={onPriceRangeChange}
                 max={maxPrice}
-                step={10}
+                step={1}
                 className='w-full'
               />
               <div className='flex justify-between text-sm text-gray-400 mt-1'>
