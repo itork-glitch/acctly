@@ -63,6 +63,7 @@ export const useLogin = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log('chu2j');
 
     const validationErrors = validateLoginForm(formData);
 
@@ -76,6 +77,24 @@ export const useLogin = () => {
 
     try {
       const { userData, twoFaData } = await checkUserAndTwoFa(formData.email);
+
+      if (twoFaData.app_2fa_enabled || twoFaData.email_2fa_enabled) {
+        const tempToken = createTempToken(
+          formData.email,
+          userData.id,
+          twoFaData
+        );
+
+        if (typeof window !== 'undefined')
+          localStorage.setItem('tempToken', tempToken);
+
+        if (twoFaData.email_2fa_enabled)
+          await sendEmailCode(formData.email, userData.id, tempToken);
+
+        setLoginStep('2fa');
+        setTimeRemaining(300);
+        return;
+      }
 
       const result = await signIn('credentials', {
         email: formData.email,
@@ -103,30 +122,19 @@ export const useLogin = () => {
         return;
       }
 
-      if (twoFaData.app_2fa_enabled || twoFaData.email_2fa_enabled) {
-        const tempToken = createTempToken(
-          formData.email,
-          userData.id,
-          twoFaData
-        );
-        localStorage.setItem('tempToken', tempToken);
+      console.log(result);
 
-        if (twoFaData.email_2fa_enabled) {
-          await sendEmailCode(formData.email, userData.id, tempToken);
-        }
-
-        setLoginStep('2fa');
-        setTimeRemaining(300);
-      } else {
+      if (result?.ok) {
         await getSession();
         router.push('/dashboard');
-        router.refresh();
       }
     } catch (error: any) {
       setErrors({
         general: error.message || 'Something went wrong. Please try again.',
       });
     } finally {
+      console.log('chuj');
+
       setIsLoading(false);
     }
   };
@@ -143,7 +151,11 @@ export const useLogin = () => {
     setErrors({ ...errors, otp: '' });
 
     try {
-      const tempToken = localStorage.getItem('tempToken');
+      const tempToken =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('tempToken')
+          : null;
+
       if (!tempToken) {
         setErrors({ ...errors, otp: 'Session expired. Please login again' });
         handleBackToLogin();
@@ -153,7 +165,20 @@ export const useLogin = () => {
       const data = await verifyTwoFa(tempToken, otpCode);
 
       if (data.success) {
-        router.push('/dashboard');
+        const result = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+
+        if (result?.ok) {
+          await getSession();
+
+          if (typeof window !== 'undefined')
+            localStorage.removeItem('tempToken');
+
+          router.push('/dashboard');
+        }
       } else {
         setErrors({
           ...errors,
