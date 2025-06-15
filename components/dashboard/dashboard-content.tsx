@@ -47,7 +47,7 @@ export function DashboardContent() {
         .from('users')
         .select('*')
         .eq('email', session.user.email)
-        .single();
+        .maybeSingle();
 
       userError
         ? console.error('Error while fetching user: ', userError)
