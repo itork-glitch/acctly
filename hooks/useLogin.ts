@@ -61,6 +61,21 @@ export const useLogin = () => {
     if (successMessage) setSuccessMessage('');
   };
 
+  const handle2FA = async (
+    email: string,
+    userID: string,
+    type: 'app' | 'email'
+  ) => {
+    const tempToken = createTempToken(email, userID, type);
+
+    if (typeof window !== 'undefined')
+      localStorage.setItem('tempToken', tempToken);
+    if (type === 'email') await sendEmailCode(email, userID, tempToken);
+
+    setLoginStep('2fa');
+    setTimeRemaining(300);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('chu2j');
@@ -76,23 +91,15 @@ export const useLogin = () => {
     setErrors({});
 
     try {
-      const { userData, twoFaData } = await checkUserAndTwoFa(formData.email);
+      const { userData } = await checkUserAndTwoFa(formData.email);
 
-      if (twoFaData.app_2fa_enabled || twoFaData.email_2fa_enabled) {
-        const tempToken = createTempToken(
-          formData.email,
-          userData.id,
-          twoFaData
-        );
+      if (userData.app_2fa_enabled) {
+        await handle2FA(formData.email, userData.id, 'app');
+        return;
+      }
 
-        if (typeof window !== 'undefined')
-          localStorage.setItem('tempToken', tempToken);
-
-        if (twoFaData.email_2fa_enabled)
-          await sendEmailCode(formData.email, userData.id, tempToken);
-
-        setLoginStep('2fa');
-        setTimeRemaining(300);
+      if (userData.email_2fa_enabled) {
+        await handle2FA(formData.email, userData.id, 'email');
         return;
       }
 

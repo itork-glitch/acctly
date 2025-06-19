@@ -1,3 +1,5 @@
+import { supabaseServer } from '@/utils/supabase/server';
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

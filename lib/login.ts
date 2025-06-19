@@ -1,6 +1,8 @@
 import { supabase } from '@/utils/supabase/client';
 import jwt from 'jsonwebtoken';
 
+type TwoFaType = 'app' | 'email';
+
 export interface FormData {
   email: string;
   password: string;
@@ -41,7 +43,7 @@ export const validateLoginForm = (formData: FormData): ValidationErrors => {
 export const checkUserAndTwoFa = async (email: string) => {
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('id, email')
+    .select('id, email, email_2fa_enabled, app_2fa_enabled')
     .eq('email', email)
     .single();
 
@@ -49,29 +51,19 @@ export const checkUserAndTwoFa = async (email: string) => {
     throw new Error('User not found. Please create account');
   }
 
-  const { data: twoFaData, error: twoFaError } = await supabase
-    .from('user_2fa')
-    .select('id, user_id, email_2fa_enabled, app_2fa_enabled')
-    .eq('user_id', userData.id)
-    .single();
-
-  if (twoFaError || !twoFaData) {
-    throw new Error('User not found. Please create account');
-  }
-
-  return { userData, twoFaData };
+  return { userData };
 };
 
 export const createTempToken = (
   email: string,
   userID: string,
-  twoFaData: any
+  twoFaType: TwoFaType
 ) => {
   return jwt.sign(
     {
       userEmail: email,
       userId: userID,
-      twoFaType: twoFaData.app_2fa_enabled ? 'app' : 'email',
+      twoFaType,
     },
     process.env.NEXT_PUBLIC_JWT_SECRET!,
     { expiresIn: '5m' }

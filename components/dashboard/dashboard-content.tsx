@@ -25,16 +25,28 @@ import {
   USER_PROFILE,
   PROMOTIONAL_OFFERS,
 } from '@/constants/dashboard';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/dashboard';
 import { Plus, Gift, Calendar, Download, Shield } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/utils/supabase/client';
 import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+
+type Product = {
+  id: number;
+  name: string;
+  price: number;
+  compare_price: number;
+  quantity: number;
+  description: string;
+};
 
 export function DashboardContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [featured, setFeatured] = useState<Product[]>([]);
 
   const { data: session, status } = useSession();
 
@@ -59,11 +71,34 @@ export function DashboardContent() {
     fetchUser();
   }, [session]);
 
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      setIsLoading(true);
+
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, price, compare_price, quantity, description')
+        .eq('is_featured', true);
+
+      if (productsError || !products) {
+        console.error(productsError);
+        setIsLoading(false);
+        return;
+      }
+
+      const Featured = products.slice(0, 2);
+      setFeatured(Featured);
+      setIsLoading(false);
+    };
+
+    fetchFeaturedProducts();
+  }, []);
+
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
   };
 
-  if (status === 'loading' || isLoading) return <p>Loading...</p>;
+  if (status === 'loading' || isLoading) return;
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -77,44 +112,50 @@ export function DashboardContent() {
               </p>
             </div>
 
-            <StatsCards />
+            <StatsCards userID={session?.user.id || ''} />
 
             {/* Featured Offers */}
             <h2 className='text-xl font-semibold text-white mb-4'>
               Featured Offers
             </h2>
             <div className='grid grid-cols-2 gap-4 mb-8'>
-              {PROMOTIONAL_OFFERS.map((promo) => (
-                <Card key={promo.id} className='border-0 overflow-hidden'>
-                  <div className={`bg-gradient-to-r ${promo.color} p-5`}>
+              {featured.map((offer) => (
+                <Card
+                  key={offer.id}
+                  className={`border-0 overflow-hidden bg-gradient-to-r ${offer.name.includes('Netflix') ? 'from-red-500 to-rose-800' : offer.name.includes('Spotify') ? 'from-emerald-500 to-green-700' : ''}`}>
+                  <div className='p-5'>
                     <div className='flex justify-between items-start'>
                       <div>
                         <Badge className='bg-white/20 text-white border-0 mb-2'>
-                          {promo.discount}
+                          You saving up to{' '}
+                          {Math.round(offer.compare_price - offer.price)}$
+                          monthly
                         </Badge>
                         <h3 className='text-xl font-bold text-white mb-1'>
-                          {promo.title}
+                          {offer.name}
                         </h3>
                         <p className='text-white/80 mb-3'>
-                          {promo.description}
+                          {offer.description}
                         </p>
                         <div className='flex items-center gap-2 mb-2'>
                           <span className='text-2xl font-bold text-white'>
-                            {formatCurrency(promo.salePrice)}
+                            {formatCurrency(offer.price)}
                           </span>
                           <span className='text-white/60 line-through'>
-                            {formatCurrency(promo.originalPrice)}
+                            {formatCurrency(offer.compare_price)}
                           </span>
                         </div>
                         <p className='text-sm text-white/70'>
-                          Expires: {promo.expires}
+                          Expires: 31 July 2025
                         </p>
                       </div>
-                      <Gift className='w-12 h-12 text-white/30' />
+                      <Gift className='w-12 h-12 text-white/90' />
                     </div>
-                    <Button className='mt-4 bg-white text-gray-900 hover:bg-white/90'>
-                      Claim Offer
-                    </Button>
+                    <Link href={'/'}>
+                      <Button className='mt-4 bg-white text-gray-900 hover:bg-white/90'>
+                        Claim Offer
+                      </Button>
+                    </Link>
                   </div>
                 </Card>
               ))}
