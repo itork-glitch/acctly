@@ -4,23 +4,26 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/dashboard';
 import { CheckCircle2, Clock, Eye, Download } from 'lucide-react';
 
-interface OrderHistoryItemProps {
-  order: {
-    id: string;
-    date: string;
-    service: string;
-    amount: number;
-    status: 'delivered' | 'processing' | 'cancelled';
-    category: string;
-    accountDetails: {
-      email: string;
-      password: string;
-      expiresOn: string;
-    } | null;
-  };
-}
+type OrderItem = {
+  id: number;
+  product_id: string;
+  product_name?: string;
+  email: string;
+  password: string;
+  expires_in: string;
+};
 
-export function OrderHistoryItem({ order }: OrderHistoryItemProps) {
+type OrderWithItems = {
+  id: number;
+  order_number: string;
+  total: number;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  order_items: OrderItem[];
+};
+
+export function OrderHistoryItem({ order }: { order: OrderWithItems }) {
   const statusIcon = order.status === 'delivered' ? CheckCircle2 : Clock;
 
   return (
@@ -36,15 +39,17 @@ export function OrderHistoryItem({ order }: OrderHistoryItemProps) {
               )}
             </div>
             <div>
-              <h3 className='font-medium text-white'>{order.service}</h3>
+              <h3 className='font-medium text-white'>
+                {order.order_items[0].product_name}
+              </h3>
               <p className='text-sm text-gray-400'>
-                {order.id} • {formatDate(order.date)}
+                {order.order_number} • {formatDate(order.created_at)}
               </p>
             </div>
           </div>
           <div className='text-right'>
             <p className='font-medium text-white'>
-              {formatCurrency(order.amount)}
+              {formatCurrency(order.total)}
             </p>
             <Badge className={getStatusColor(order.status)}>
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -52,26 +57,26 @@ export function OrderHistoryItem({ order }: OrderHistoryItemProps) {
           </div>
         </div>
 
-        {order.accountDetails && (
+        {order && (
           <div className='bg-[#414141]/30 rounded-lg p-4 mb-4'>
             <h4 className='font-medium text-white mb-2'>Account Details</h4>
             <div className='space-y-2 text-sm'>
               <div className='flex justify-between'>
                 <span className='text-gray-400'>Email:</span>
                 <span className='text-white font-mono'>
-                  {order.accountDetails.email}
+                  {order.order_items[0].email}
                 </span>
               </div>
               <div className='flex justify-between'>
                 <span className='text-gray-400'>Password:</span>
                 <span className='text-white font-mono'>
-                  {order.accountDetails.password}
+                  {order.order_items[0].password}
                 </span>
               </div>
               <div className='flex justify-between'>
                 <span className='text-gray-400'>Expires:</span>
                 <span className='text-white'>
-                  {formatDate(order.accountDetails.expiresOn)}
+                  {formatDate(order.order_items[0].expires_in)}
                 </span>
               </div>
             </div>
@@ -85,7 +90,7 @@ export function OrderHistoryItem({ order }: OrderHistoryItemProps) {
             <Eye className='w-4 h-4 mr-2' />
             View Details
           </Button>
-          {order.accountDetails && (
+          {order && (
             <Button
               variant='outline'
               className='flex-1 border-gray-700 text-gray-300 hover:bg-gray-800'>
